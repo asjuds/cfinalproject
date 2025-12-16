@@ -2,38 +2,50 @@
 #include "logic.h"
 #include "ui_main_window.h"
 
-/* GTK4 removed gtk_dialog_run; implement a simple blocking runner. */
+/* This file has all the dialog windows - like popup boxes for user input */
+/* Each function shows a different dialog for different operations */
+
+/* GTK4 doesn't have gtk_dialog_run anymore, so I made my own version */
+/* This makes the dialog wait for the user to click OK or Cancel */
+
+/* This gets called when user clicks OK or Cancel */
 static void on_dialog_response(GtkDialog *dialog,
                                int response_id,
                                gpointer user_data) {
     int *resp = (int *)user_data;
-    *resp = response_id;
+    *resp = response_id;  /* Save which button they clicked */
 }
 
+/* This function makes a dialog wait for user input */
+/* It's like gtk_dialog_run but works in GTK4 */
 static int run_dialog_blocking(GtkDialog *dialog) {
     int response = GTK_RESPONSE_NONE;
+    /* Connect the signal so we know when user clicks */
     g_signal_connect(dialog, "response",
                      G_CALLBACK(on_dialog_response), &response);
     gtk_widget_show(GTK_WIDGET(dialog));
+    /* Wait in a loop until user clicks something */
     while (response == GTK_RESPONSE_NONE) {
         while (g_main_context_pending(NULL)) {
             g_main_context_iteration(NULL, TRUE);
         }
         g_main_context_iteration(NULL, TRUE);
     }
-    return response;
+    return response;  /* Return which button they clicked */
 }
 
+/* Show an error message popup */
 static void show_error(GtkWindow *parent, const char *msg) {
     GtkWidget *d = gtk_message_dialog_new(parent,
                                           GTK_DIALOG_MODAL,
                                           GTK_MESSAGE_ERROR,
                                           GTK_BUTTONS_OK,
                                           "%s", msg);
-    run_dialog_blocking(GTK_DIALOG(d));
+    run_dialog_blocking(GTK_DIALOG(d));  /* Wait for user to click OK */
     gtk_window_destroy(GTK_WINDOW(d));
 }
 
+/* Show an info message popup */
 static void show_info(GtkWindow *parent, const char *msg) {
     GtkWidget *d = gtk_message_dialog_new(parent,
                                           GTK_DIALOG_MODAL,
@@ -44,17 +56,21 @@ static void show_info(GtkWindow *parent, const char *msg) {
     gtk_window_destroy(GTK_WINDOW(d));
 }
 
+/* Helper function to make a label + text box together */
+/* I use this a lot so I made it a function */
 static GtkWidget *add_labeled_entry(GtkWidget *box, const char *label, GtkWidget **entry_out) {
-    GtkWidget *h = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-    GtkWidget *lbl = gtk_label_new(label);
-    GtkWidget *entry = gtk_entry_new();
-    gtk_box_append(GTK_BOX(h), lbl);
-    gtk_box_append(GTK_BOX(h), entry);
-    gtk_box_append(GTK_BOX(box), h);
-    if (entry_out) *entry_out = entry;
+    GtkWidget *h = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);  /* Horizontal box */
+    GtkWidget *lbl = gtk_label_new(label);  /* The label text */
+    GtkWidget *entry = gtk_entry_new();  /* The text input box */
+    gtk_box_append(GTK_BOX(h), lbl);  /* Put label in box */
+    gtk_box_append(GTK_BOX(h), entry);  /* Put entry in box */
+    gtk_box_append(GTK_BOX(box), h);  /* Put the whole thing in parent box */
+    if (entry_out) *entry_out = entry;  /* Return the entry so I can use it later */
     return entry;
 }
 
+/* This shows the dialog to add a new product */
+/* User enters ID, name, category, price, and quantity */
 void ui_show_add_product_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Add Product",
                                                     parent,
@@ -102,6 +118,10 @@ void ui_show_add_product_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show dialog to update stock for an existing product.
+ * Collects product ID and quantity to add (must be > 5).
+ */
 void ui_show_update_stock_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Update Stock",
                                                     parent,
@@ -141,6 +161,11 @@ void ui_show_update_stock_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show dialog to sell a product.
+ * Collects product ID and quantity to sell, validates stock availability,
+ * and displays total sale value on success.
+ */
 void ui_show_sell_product_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Sell Product",
                                                     parent,
@@ -183,6 +208,10 @@ void ui_show_sell_product_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show dialog to check stock level for a product.
+ * Displays current quantity and shows a warning if stock is below 5.
+ */
 void ui_show_check_stock_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Check Stock Level",
                                                     parent,
@@ -230,6 +259,10 @@ void ui_show_check_stock_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show dialog displaying total stock value.
+ * Calculates and displays the sum of (price * quantity) for all products.
+ */
 void ui_show_calculate_value_dialog(GtkWindow *parent) {
     double total = compute_total_stock_value();
     char msg[128];
@@ -237,6 +270,11 @@ void ui_show_calculate_value_dialog(GtkWindow *parent) {
     show_info(parent, msg);
 }
 
+/**
+ * Show dialog to apply a discount to a product sale.
+ * Collects product ID, quantity, and discount percentage (10-20%).
+ * Calculates and displays the discounted total.
+ */
 void ui_show_apply_discount_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Apply Discount",
                                                     parent,
@@ -282,6 +320,10 @@ void ui_show_apply_discount_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show dialog to remove a product from inventory.
+ * Collects product ID, shows confirmation dialog, and removes product if confirmed.
+ */
 void ui_show_remove_product_dialog(GtkWindow *parent) {
     GtkWidget *dialog = gtk_dialog_new_with_buttons("Remove Product",
                                                     parent,
@@ -327,6 +369,14 @@ void ui_show_remove_product_dialog(GtkWindow *parent) {
     gtk_window_destroy(GTK_WINDOW(dialog));
 }
 
+/**
+ * Show report window with summary statistics.
+ * Displays:
+ * - Total number of products
+ * - Total stock value
+ * - Total stock sold
+ * - Most active product (highest sold quantity)
+ */
 void ui_show_report_window(GtkWindow *parent) {
     GtkWidget *win = gtk_window_new();
     gtk_window_set_title(GTK_WINDOW(win), "Stock Report");

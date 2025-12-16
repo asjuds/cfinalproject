@@ -2,56 +2,72 @@
 #include "ui_dialogs.h"
 #include "model.h"
 
-/* Defined in main.c, declared in model.h */
+/* This file creates the main window with the table and buttons */
+/* It's the GUI part - what the user sees and clicks */
+
+/* These are the global arrays from main.c */
 extern GPtrArray *products;
 extern GPtrArray *history;
 
-static GtkListStore *products_store = NULL;
-static GtkListStore *history_store = NULL;
-static GtkTreeView *products_view = NULL;
-static GtkTreeView *history_view = NULL;
+/* These are the table widgets - I store them here so I can update them later */
+static GtkListStore *products_store = NULL;  /* The data for products table */
+static GtkListStore *history_store = NULL;   /* The data for history table */
+static GtkTreeView *products_view = NULL;    /* The actual products table widget */
+static GtkTreeView *history_view = NULL;     /* The actual history table widget */
 
+/* These numbers tell us which column is which in the products table */
 enum {
-    COL_ID,
-    COL_NAME,
-    COL_CATEGORY,
-    COL_QUANTITY,
-    COL_PRICE,
-    COL_SOLD,
-    COL_COLOR,
-    N_COLS
+    COL_ID,        /* Column 0: Product ID */
+    COL_NAME,      /* Column 1: Product name */
+    COL_CATEGORY,  /* Column 2: Category */
+    COL_QUANTITY,  /* Column 3: How many we have */
+    COL_PRICE,     /* Column 4: Price */
+    COL_SOLD,      /* Column 5: How many sold */
+    COL_COLOR,     /* Column 6: For coloring (not really used) */
+    N_COLS         /* Total columns = 7 */
 };
 
+/* These numbers tell us which column is which in the history table */
 enum {
-    H_COL_TIME,
-    H_COL_OP,
-    H_COL_PID,
-    H_COL_QTY,
-    H_COL_VAL,
-    H_COL_DESC,
-    H_N_COLS
+    H_COL_TIME,    /* Column 0: When it happened */
+    H_COL_OP,      /* Column 1: What operation (ADD, SELL, etc) */
+    H_COL_PID,     /* Column 2: Product ID */
+    H_COL_QTY,     /* Column 3: Quantity change */
+    H_COL_VAL,     /* Column 4: Value change */
+    H_COL_DESC,    /* Column 5: Description */
+    H_N_COLS       /* Total columns = 6 */
 };
 
+/* This function makes the quantity cell red if stock is low (< 5) */
+/* GTK calls this for each cell to decide how to display it */
 static void quantity_cell_data_func(GtkTreeViewColumn *column,
                                     GtkCellRenderer *renderer,
                                     GtkTreeModel *model,
                                     GtkTreeIter *iter,
                                     gpointer data) {
     gint quantity;
+    /* Get the quantity value from this row */
     gtk_tree_model_get(model, iter, COL_QUANTITY, &quantity, -1);
+    /* If stock is less than 5, make it red (warning!) */
     if (quantity < 5) {
         g_object_set(renderer, "foreground", "red", NULL);
     } else {
-        g_object_set(renderer, "foreground", NULL, NULL);
+        g_object_set(renderer, "foreground", NULL, NULL);  /* Normal color */
     }
 }
 
+/* This function updates the products table to show current data */
+/* I call this after adding, selling, or updating products */
 void ui_refresh_products_table(void) {
+    /* First, clear everything that's already there */
     gtk_list_store_clear(products_store);
+    /* Then add each product from our list */
     for (guint i = 0; i < products->len; i++) {
         Product *p = g_ptr_array_index(products, i);
         GtkTreeIter iter;
+        /* Add a new row to the table */
         gtk_list_store_append(products_store, &iter);
+        /* Fill in all the columns with product data */
         gtk_list_store_set(products_store, &iter,
                            COL_ID, p->id,
                            COL_NAME, p->name,
@@ -59,20 +75,27 @@ void ui_refresh_products_table(void) {
                            COL_QUANTITY, p->quantity,
                            COL_PRICE, p->price,
                            COL_SOLD, p->sold,
-                           COL_COLOR, "",
+                           COL_COLOR, "",  /* Not really used */
                            -1);
     }
 }
 
+/* This function updates the history table to show all operations */
+/* I call this after any operation that changes history */
 void ui_refresh_history_view(void) {
+    /* Clear the table first */
     gtk_list_store_clear(history_store);
+    /* Add each history entry */
     for (guint i = 0; i < history->len; i++) {
         HistoryEntry *h = g_ptr_array_index(history, i);
         GtkTreeIter iter;
+        /* Convert the timestamp to a readable date/time string */
         char time_buf[64];
         struct tm *tm_info = localtime(&h->timestamp);
         strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", tm_info);
+        /* Add a new row */
         gtk_list_store_append(history_store, &iter);
+        /* Fill in all the columns */
         gtk_list_store_set(history_store, &iter,
                            H_COL_TIME, time_buf,
                            H_COL_OP, h->operation,
@@ -84,21 +107,28 @@ void ui_refresh_history_view(void) {
     }
 }
 
+/* This function gets the product ID from the row the user clicked on */
+/* I could use this to pre-fill the ID in dialogs, but I'm not using it yet */
 char *ui_get_selected_product_id(void) {
     GtkTreeSelection *sel = gtk_tree_view_get_selection(products_view);
     GtkTreeModel *model;
     GtkTreeIter iter;
+    /* Check if user selected a row */
     if (gtk_tree_selection_get_selected(sel, &model, &iter)) {
         char *id = NULL;
+        /* Get the ID from that row */
         gtk_tree_model_get(model, &iter, COL_ID, &id, -1);
-        return id;
+        return id;  /* Remember to free this later! */
     }
-    return NULL;
+    return NULL;  /* Nothing selected */
 }
 
+/* These are the button click functions - when user clicks a button, these run */
+
+/* When user clicks "Add Product" button */
 static void on_add_product_clicked(GtkButton *btn, gpointer user_data) {
     GtkWindow *win = GTK_WINDOW(user_data);
-    ui_show_add_product_dialog(win);
+    ui_show_add_product_dialog(win);  /* Open the add product dialog */
 }
 
 static void on_update_stock_clicked(GtkButton *btn, gpointer user_data) {
@@ -136,10 +166,13 @@ static void on_generate_report_clicked(GtkButton *btn, gpointer user_data) {
     ui_show_report_window(win);
 }
 
+/* This function creates the whole main window */
+/* It makes the buttons, tables, and puts everything together */
 GtkWidget *ui_create_main_window(GtkApplication *app) {
+    /* Create the main window */
     GtkWidget *window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "Stock Management System");
-    gtk_window_set_default_size(GTK_WINDOW(window), 900, 600);
+    gtk_window_set_default_size(GTK_WINDOW(window), 900, 600);  /* Make it big enough */
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
     gtk_widget_set_margin_top(vbox, 8);
