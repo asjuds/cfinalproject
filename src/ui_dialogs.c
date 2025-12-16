@@ -2,13 +2,35 @@
 #include "logic.h"
 #include "ui_main_window.h"
 
+/* GTK4 removed gtk_dialog_run; implement a simple blocking runner. */
+static void on_dialog_response(GtkDialog *dialog,
+                               int response_id,
+                               gpointer user_data) {
+    int *resp = (int *)user_data;
+    *resp = response_id;
+}
+
+static int run_dialog_blocking(GtkDialog *dialog) {
+    int response = GTK_RESPONSE_NONE;
+    g_signal_connect(dialog, "response",
+                     G_CALLBACK(on_dialog_response), &response);
+    gtk_widget_show(GTK_WIDGET(dialog));
+    while (response == GTK_RESPONSE_NONE) {
+        while (g_main_context_pending(NULL)) {
+            g_main_context_iteration(NULL, TRUE);
+        }
+        g_main_context_iteration(NULL, TRUE);
+    }
+    return response;
+}
+
 static void show_error(GtkWindow *parent, const char *msg) {
     GtkWidget *d = gtk_message_dialog_new(parent,
                                           GTK_DIALOG_MODAL,
                                           GTK_MESSAGE_ERROR,
                                           GTK_BUTTONS_OK,
                                           "%s", msg);
-    gtk_dialog_run(GTK_DIALOG(d));
+    run_dialog_blocking(GTK_DIALOG(d));
     gtk_window_destroy(GTK_WINDOW(d));
 }
 
@@ -18,7 +40,7 @@ static void show_info(GtkWindow *parent, const char *msg) {
                                           GTK_MESSAGE_INFO,
                                           GTK_BUTTONS_OK,
                                           "%s", msg);
-    gtk_dialog_run(GTK_DIALOG(d));
+    run_dialog_blocking(GTK_DIALOG(d));
     gtk_window_destroy(GTK_WINDOW(d));
 }
 
@@ -41,7 +63,11 @@ void ui_show_add_product_dialog(GtkWindow *parent) {
                                                     "_Add", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id, *entry_name, *entry_cat, *entry_price, *entry_qty;
@@ -51,8 +77,7 @@ void ui_show_add_product_dialog(GtkWindow *parent) {
     add_labeled_entry(vbox, "Price:", &entry_price);
     add_labeled_entry(vbox, "Quantity:", &entry_qty);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         const char *name = gtk_editable_get_text(GTK_EDITABLE(entry_name));
@@ -85,15 +110,18 @@ void ui_show_update_stock_dialog(GtkWindow *parent) {
                                                     "_Update", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id, *entry_qty;
     add_labeled_entry(vbox, "Product ID:", &entry_id);
     add_labeled_entry(vbox, "Quantity to add:", &entry_qty);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         const char *qty_str = gtk_editable_get_text(GTK_EDITABLE(entry_qty));
@@ -121,15 +149,18 @@ void ui_show_sell_product_dialog(GtkWindow *parent) {
                                                     "_Sell", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id, *entry_qty;
     add_labeled_entry(vbox, "Product ID:", &entry_id);
     add_labeled_entry(vbox, "Quantity to sell:", &entry_qty);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         const char *qty_str = gtk_editable_get_text(GTK_EDITABLE(entry_qty));
@@ -160,14 +191,17 @@ void ui_show_check_stock_dialog(GtkWindow *parent) {
                                                     "_Check", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id;
     add_labeled_entry(vbox, "Product ID:", &entry_id);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         int qty = 0;
@@ -185,7 +219,7 @@ void ui_show_check_stock_dialog(GtkWindow *parent) {
                                                       GTK_MESSAGE_WARNING,
                                                       GTK_BUTTONS_OK,
                                                       "%s\nWarning: stock is below 5!", msg);
-                gtk_dialog_run(GTK_DIALOG(d));
+                run_dialog_blocking(GTK_DIALOG(d));
                 gtk_window_destroy(GTK_WINDOW(d));
             } else {
                 show_info(parent, msg);
@@ -211,7 +245,11 @@ void ui_show_apply_discount_dialog(GtkWindow *parent) {
                                                     "_Apply", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id, *entry_qty, *entry_disc;
@@ -219,8 +257,7 @@ void ui_show_apply_discount_dialog(GtkWindow *parent) {
     add_labeled_entry(vbox, "Quantity:", &entry_qty);
     add_labeled_entry(vbox, "Discount % (10-20):", &entry_disc);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         const char *qty_str = gtk_editable_get_text(GTK_EDITABLE(entry_qty));
@@ -253,14 +290,17 @@ void ui_show_remove_product_dialog(GtkWindow *parent) {
                                                     "_Next", GTK_RESPONSE_OK,
                                                     NULL);
     GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_box_append(GTK_BOX(content), vbox);
 
     GtkWidget *entry_id;
     add_labeled_entry(vbox, "Product ID:", &entry_id);
 
-    gtk_widget_show(dialog);
-    int resp = gtk_dialog_run(GTK_DIALOG(dialog));
+    int resp = run_dialog_blocking(GTK_DIALOG(dialog));
     if (resp == GTK_RESPONSE_OK) {
         const char *id = gtk_editable_get_text(GTK_EDITABLE(entry_id));
         GtkWidget *confirm = gtk_message_dialog_new(parent,
@@ -269,7 +309,7 @@ void ui_show_remove_product_dialog(GtkWindow *parent) {
                                                     GTK_BUTTONS_YES_NO,
                                                     "Are you sure you want to remove product %s?",
                                                     id);
-        int c = gtk_dialog_run(GTK_DIALOG(confirm));
+        int c = run_dialog_blocking(GTK_DIALOG(confirm));
         gtk_window_destroy(GTK_WINDOW(confirm));
         if (c == GTK_RESPONSE_YES) {
             GError *err = NULL;
@@ -295,6 +335,10 @@ void ui_show_report_window(GtkWindow *parent) {
     gtk_window_set_default_size(GTK_WINDOW(win), 400, 200);
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
+    gtk_widget_set_margin_top(vbox, 12);
+    gtk_widget_set_margin_bottom(vbox, 12);
+    gtk_widget_set_margin_start(vbox, 12);
+    gtk_widget_set_margin_end(vbox, 12);
     gtk_window_set_child(GTK_WINDOW(win), vbox);
 
     int total_products = (int)products->len;

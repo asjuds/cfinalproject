@@ -6,9 +6,48 @@
 GPtrArray *products = NULL;
 GPtrArray *history = NULL;
 
+static void setup_css(void) {
+    const char *css =
+        "window {"
+        "  background-color: #ffffff;"
+        "}"
+        "box {"
+        "  background-color: #f8f9fa;"
+        "}"
+        "button {"
+        "  padding: 6px 14px;"
+        "}"
+        "button.suggested-action {"
+        "  background: #2d8cff;"
+        "  color: white;"
+        "}"
+        "button.destructive-action {"
+        "  background: #ff4b4b;"
+        "  color: white;"
+        "}"
+        "label.section-title {"
+        "  font-weight: bold;"
+        "  padding: 4px 0;"
+        "}";
+
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, css, -1);
+    GdkDisplay *display = gdk_display_get_default();
+    if (display) {
+        gtk_style_context_add_provider_for_display(
+            display,
+            GTK_STYLE_PROVIDER(provider),
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
+    g_object_unref(provider);
+}
+
 static void on_activate(GtkApplication *app, gpointer user_data) {
-    products = g_ptr_array_new_with_free_func(g_free);
-    history = g_ptr_array_new_with_free_func(g_free);
+    /* We manage element freeing manually on shutdown to avoid double-free */
+    products = g_ptr_array_new();
+    history = g_ptr_array_new();
+
+    setup_css();
 
     GError *err = NULL;
     storage_load_products("data/products.csv", &err);
@@ -41,10 +80,16 @@ static void on_shutdown(GApplication *app, gpointer user_data) {
     }
 
     if (products) {
+        for (guint i = 0; i < products->len; i++) {
+            g_free(g_ptr_array_index(products, i));
+        }
         g_ptr_array_free(products, TRUE);
         products = NULL;
     }
     if (history) {
+        for (guint i = 0; i < history->len; i++) {
+            g_free(g_ptr_array_index(history, i));
+        }
         g_ptr_array_free(history, TRUE);
         history = NULL;
     }

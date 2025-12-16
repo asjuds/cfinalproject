@@ -2,8 +2,9 @@
 #include "ui_dialogs.h"
 #include "model.h"
 
-GPtrArray *products;
-GPtrArray *history;
+/* Defined in main.c, declared in model.h */
+extern GPtrArray *products;
+extern GPtrArray *history;
 
 static GtkListStore *products_store = NULL;
 static GtkListStore *history_store = NULL;
@@ -141,6 +142,10 @@ GtkWidget *ui_create_main_window(GtkApplication *app) {
     gtk_window_set_default_size(GTK_WINDOW(window), 900, 600);
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    gtk_widget_set_margin_top(vbox, 8);
+    gtk_widget_set_margin_bottom(vbox, 8);
+    gtk_widget_set_margin_start(vbox, 8);
+    gtk_widget_set_margin_end(vbox, 8);
     gtk_window_set_child(GTK_WINDOW(window), vbox);
 
     GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
@@ -165,9 +170,30 @@ GtkWidget *ui_create_main_window(GtkApplication *app) {
         gtk_box_append(GTK_BOX(toolbar), btn);
         g_signal_connect(btn, "clicked", buttons[i].cb, window);
     }
+    /* Style primary and destructive actions */
+    GtkWidget *first_btn = gtk_widget_get_first_child(toolbar);
+    if (first_btn) {
+        gtk_widget_add_css_class(first_btn, "suggested-action");
+    }
+    GtkWidget *child = gtk_widget_get_first_child(toolbar);
+    GtkWidget *last_btn = NULL;
+    while (child) {
+        last_btn = child;
+        child = gtk_widget_get_next_sibling(child);
+    }
+    if (last_btn) {
+        gtk_widget_add_css_class(last_btn, "destructive-action");
+    }
 
     GtkWidget *paned = gtk_paned_new(GTK_ORIENTATION_VERTICAL);
     gtk_box_append(GTK_BOX(vbox), paned);
+
+    /* Products table */
+    GtkWidget *products_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *products_label = gtk_label_new("Products");
+    gtk_widget_add_css_class(products_label, "section-title");
+    gtk_widget_set_halign(products_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(products_box), products_label);
 
     products_store = gtk_list_store_new(N_COLS,
                                         G_TYPE_STRING,
@@ -219,8 +245,10 @@ GtkWidget *ui_create_main_window(GtkApplication *app) {
     GtkWidget *scroll_products = gtk_scrolled_window_new();
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll_products),
                                   GTK_WIDGET(products_view));
-    gtk_paned_set_start_child(GTK_PANED(paned), scroll_products);
+    gtk_box_append(GTK_BOX(products_box), scroll_products);
+    gtk_paned_set_start_child(GTK_PANED(paned), products_box);
 
+    /* History table */
     history_store = gtk_list_store_new(H_N_COLS,
                                        G_TYPE_STRING,
                                        G_TYPE_STRING,
@@ -256,10 +284,17 @@ GtkWidget *ui_create_main_window(GtkApplication *app) {
     col = gtk_tree_view_column_new_with_attributes("Description", renderer, "text", H_COL_DESC, NULL);
     gtk_tree_view_append_column(history_view, col);
 
+    GtkWidget *history_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget *history_label = gtk_label_new("Stock History");
+    gtk_widget_add_css_class(history_label, "section-title");
+    gtk_widget_set_halign(history_label, GTK_ALIGN_START);
+    gtk_box_append(GTK_BOX(history_box), history_label);
+
     GtkWidget *scroll_history = gtk_scrolled_window_new();
     gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll_history),
                                   GTK_WIDGET(history_view));
-    gtk_paned_set_end_child(GTK_PANED(paned), scroll_history);
+    gtk_box_append(GTK_BOX(history_box), scroll_history);
+    gtk_paned_set_end_child(GTK_PANED(paned), history_box);
 
     ui_refresh_products_table();
     ui_refresh_history_view();

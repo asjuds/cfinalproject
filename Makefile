@@ -5,7 +5,6 @@ LDFLAGS = `pkg-config --libs gtk4`
 SRC_DIR = src
 SRCS = \
 	$(SRC_DIR)/main.c \
-	$(SRC_DIR)/model.c \
 	$(SRC_DIR)/storage.c \
 	$(SRC_DIR)/logic.c \
 	$(SRC_DIR)/ui_main_window.c \

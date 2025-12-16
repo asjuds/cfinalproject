@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-GPtrArray *products = NULL;
-GPtrArray *history = NULL;
+/* Defined in main.c, declared in model.h */
+extern GPtrArray *products;
+extern GPtrArray *history;
 
 static void trim_newline(char *s) {
     if (!s) return;

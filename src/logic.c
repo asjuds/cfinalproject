@@ -82,9 +82,10 @@ gboolean sell_product(const char *id,
                       int qty,
                       double *total,
                       GError **error) {
-    if (qty <= 5) {
+    /* Allow selling any positive quantity */
+    if (qty <= 0) {
         g_set_error(error, g_quark_from_static_string("logic"), 5,
-                    "Quantity to sell must be > 5");
+                    "Quantity to sell must be > 0");
         return FALSE;
     }
 
