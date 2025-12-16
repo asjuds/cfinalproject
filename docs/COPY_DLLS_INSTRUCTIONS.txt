@@ -1,0 +1,59 @@
+================================================================================
+INSTRUCTIONS TO FIX THE PACKAGE - Copy Missing GTK4 DLLs
+================================================================================
+
+The package was created but some critical GTK4 DLLs are missing.
+Follow these steps to complete the package:
+
+STEP 1: Open MSYS2 UCRT64 Terminal
+   - Open "MSYS2 UCRT64" from Start Menu
+
+STEP 2: Navigate to your project
+   cd /c/Users/ALL\ Atoz/OneDrive/Desktop/cfinalproject
+
+STEP 3: Run the fix script
+   chmod +x fix_package.sh
+   ./fix_package.sh
+
+OR manually copy these DLLs:
+
+STEP 3 (Alternative): Manual Copy
+   In MSYS2 UCRT64 terminal, run:
+
+   cd /c/Users/ALL\ Atoz/OneDrive/Desktop/cfinalproject
+   
+   cp /ucrt64/bin/gtk-4.dll StockManagerPackage/
+   cp /ucrt64/bin/gdk-4.dll StockManagerPackage/
+   cp /ucrt64/bin/gdk-pixbuf-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/gobject-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/glib-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/gio-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/gmodule-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/gthread-2.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/graphene-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/pango-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/pangocairo-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/pangoft2-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/pangowin32-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/cairo-2.dll StockManagerPackage/
+   cp /ucrt64/bin/cairo-gobject-2.dll StockManagerPackage/
+   cp /ucrt64/bin/pixman-1-0.dll StockManagerPackage/
+   cp /ucrt64/bin/fontconfig-1.dll StockManagerPackage/
+   cp /ucrt64/bin/freetype-6.dll StockManagerPackage/
+   cp /ucrt64/bin/harfbuzz-0.dll StockManagerPackage/
+   cp /ucrt64/bin/fribidi-0.dll StockManagerPackage/
+   cp /ucrt64/bin/epoxy-0.dll StockManagerPackage/
+   cp /ucrt64/bin/json-glib-1.0-0.dll StockManagerPackage/
+   cp /ucrt64/bin/libxml2-2.dll StockManagerPackage/
+   cp /ucrt64/bin/bz2-1.dll StockManagerPackage/
+
+STEP 4: Verify
+   Check that StockManagerPackage folder now has gtk-4.dll and glib-2.0-0.dll
+
+STEP 5: Test
+   - Copy StockManagerPackage to a different location
+   - Run RunStockManager.bat
+   - If it works, zip the folder for distribution
+
+================================================================================
+

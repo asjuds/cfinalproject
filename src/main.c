@@ -61,6 +61,9 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
 
     /* Try to load data from CSV files */
     /* If files don't exist, that's OK - first time running */
+    /* Create data folder if it doesn't exist */
+    g_mkdir_with_parents("data", 0755);
+    
     GError *err = NULL;
     storage_load_products("data/products.csv", &err);
     if (err) {

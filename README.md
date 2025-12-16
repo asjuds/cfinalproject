@@ -1,66 +1,95 @@
-## Stock Management System (GTK4, C)
+# Stock Management System
 
-This is a GUI-based stock management system written in C using GTK4 and GLib.
-It supports product management, stock operations, reporting, and CSV-based
-persistent storage.
+A complete GUI-based stock management application built with C and GTK4.
 
-### Features
+## Features
 
-- **Add Product**: Register products with ID, name, category, unit price, and initial quantity.
-- **View Products**: Products shown in a sortable table; quantity \< 5 is highlighted in red.
-- **Update Stock**: Increase quantity for an existing product (must be a positive integer).
-- **Sell Product**: Sell any positive quantity, with stock checks and total sale calculation.
-- **Check Stock Level**: Show current stock; warns when quantity \< 5.
-- **Calculate Stock Value**: Computes sum of `price * quantity` for all products.
-- **Apply Discount**: Apply 10–20% discount to a given product/quantity and show discounted total.
-- **Remove Product**: Delete a product after confirmation; table and history update.
-- **Stock History**: All operations (add, update, sell, discount, remove) logged chronologically.
-- **Generate Report**: Shows total products, overall stock value, total sold quantity, and most active product.
+- **Product Management**: Add, update, remove products with ID, name, category, price, and quantity
+- **Stock Operations**: Update stock levels, sell products with quantity validation
+- **Stock Monitoring**: View current stock with low stock warnings (quantity < 5 highlighted in red)
+- **Value Calculation**: Calculate total inventory value
+- **Discount System**: Apply discounts (10-20%) to sales
+- **History Tracking**: Complete log of all operations (add, sell, update, remove)
+- **Data Persistence**: Automatic CSV file storage for products and history
+- **Sortable Tables**: Click column headers to sort products
+- **Modern UI**: Beautiful GTK4 interface with custom CSS styling
 
-### Data model and storage
+## Quick Start
 
-- `Product`:
-  - `id`, `name`, `category`, `price`, `quantity`, `sold`.
-- `HistoryEntry`:
-  - `timestamp`, `operation`, `product_id`, `quantity_change`, `value_change`, `description`.
-- Stored in memory as `GPtrArray *products` and `GPtrArray *history`.
-- Persisted in CSV files:
-  - `data/products.csv`: `id,name,category,price,quantity,sold`
-  - `data/history.csv`: `timestamp,operation,product_id,quantity_change,value_change,description`
+### For End Users
 
-### Source files
+**Option 1: Installer (Recommended)**
+1. Download `StockManager_Installer.exe`
+2. Double-click to install
+3. Run from Start Menu or Desktop shortcut
 
-- `src/main.c` – `GtkApplication` entry point, CSS styling, startup/shutdown, load/save and cleanup.
-- `src/model.h` – Structs for `Product` and `HistoryEntry`, and global `GPtrArray` declarations.
-- `src/storage.c/.h` – CSV load/save for products and history.
-- `src/logic.c/.h` – Business logic: add/update/sell/remove/discount, stock value, history recording.
-- `src/ui_main_window.c/.h` – Main window, toolbar buttons, products table, history table, styling hooks.
-- `src/ui_dialogs.c/.h` – Dialogs for all operations and the report window.
+**Option 2: Portable Package**
+1. Extract `StockManagerPackage` folder
+2. Double-click `RunStockManager.bat`
+3. Application runs immediately
 
-### Building and running (MSYS2 UCRT64 on Windows)
+### For Developers
 
-1. Install MSYS2 from `https://www.msys2.org` and open **MSYS2 UCRT64**.
-2. Install toolchain and GTK4 (one-time):
+#### Prerequisites
+- MSYS2 with UCRT64 environment
+- GTK4 development libraries
+- GCC compiler
 
-   ```bash
-   pacman -Syu
-   pacman -S --needed base-devel mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-gtk4
-   ```
+#### Installation
+```bash
+# Install GTK4 (in MSYS2 UCRT64)
+pacman -S mingw-w64-ucrt-x86_64-gtk4
+```
 
-3. Build and run:
+#### Building
+```bash
+make clean
+make
+```
 
-   ```bash
-   cd /c/Users/ALL\ Atoz/OneDrive/Desktop/cfinalproject
-   make
-   ./stock_manager.exe
-   ```
+#### Running
+```bash
+./stock_manager.exe
+```
 
-### How to use (GUI flow)
+## Project Structure
 
-1. **Add products** first using the **Add Product** button.
-2. Use **Update Stock**, **Sell**, and **Apply Discount** as needed.
-3. Check low inventory with **Check Stock** and the red-highlighted quantities.
-4. Use **Generate Report** to view a summary of current stock and sales.
-5. Close the app; data is automatically saved to CSV files for the next run.
+```
+cfinalproject/
+├── src/                    # Source code
+├── docs/                   # Documentation
+├── scripts/                # Utility scripts
+│   ├── package.sh         # Create distribution package
+│   └── create_installer_direct.bat  # Create installer
+├── data/                   # Application data (CSV files)
+├── StockManagerPackage/    # Distribution package
+├── Makefile                # Build configuration
+├── installer.nsi           # NSIS installer script
+└── StockManager_Installer.exe  # Final installer (30 MB)
+```
 
+## Creating Distribution
 
+### Create Package Folder
+```bash
+./scripts/package.sh
+```
+
+### Create Installer
+```bash
+# Requires NSIS installed
+.\scripts\create_installer_direct.bat
+```
+
+## Documentation
+
+- [Project Structure](docs/PROJECT_STRUCTURE.md) - Detailed project organization
+- [Distribution Guide](docs/DISTRIBUTION_README.md) - Distribution instructions
+
+## License
+
+Educational purposes.
+
+## Version
+
+1.0 - December 2025

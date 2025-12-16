@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.exe
+!StockManager_Installer.exe
+
+# Development builds
+stock_manager.exe
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Package files (keep structure, ignore contents if needed)
+# StockManagerPackage/ is kept for distribution
+
